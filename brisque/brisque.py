@@ -1,4 +1,5 @@
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 import cv2
 import collections
@@ -19,6 +20,7 @@ class BRISQUE:
     def __init__(self, url=False):
         self.url = url
         self.model = svmutil.svm_load_model(os.path.join(MODEL_PATH, "svm.txt"))
+
         with open(os.path.join(MODEL_PATH, "normalize.json")) as f:
             self.scale_params = json.loads(f.read())
 
@@ -36,16 +38,39 @@ class BRISQUE:
             image = image[:, :, :3]
         return image
 
-    def score(self, img):
+    def preprocess_img(self, img):
         image = self.load_image(img)
-        image = self.remove_alpha_channel(image)
+        return self.remove_alpha_channel(image)
+
+    def score(self, img, kernel_size=7, sigma_size=7 / 6):
+        image = self.preprocess_img(img)
         gray_image = skimage.color.rgb2gray(image)
-        brisque_features = self.calculate_brisque_features(gray_image, kernel_size=7, sigma=7 / 6)
+
+        brisque_features = self.calculate_brisque_features(gray_image, kernel_size=kernel_size,
+                                                           sigma=sigma_size)
         downscaled_image = cv2.resize(gray_image, None, fx=1 / 2, fy=1 / 2, interpolation=cv2.INTER_CUBIC)
-        downscale_brisque_features = self.calculate_brisque_features(downscaled_image, kernel_size=7, sigma=7 / 6)
+        downscale_brisque_features = self.calculate_brisque_features(downscaled_image, kernel_size=kernel_size,
+                                                                     sigma=sigma_size)
         brisque_features = np.concatenate((brisque_features, downscale_brisque_features))
 
         return self.calculate_image_quality_score(brisque_features)
+
+    def multi_score(self, img):
+        scales = [(5, 5 / 6), (7, 7 / 6), (9, 9 / 6)]
+        weights = [0.2, 0.6, 0.2]  # Emphasize standard scale
+        scores = []
+        for (kernel_size, sigma), weight in zip(scales, weights):
+            local_score = self.score(img, kernel_size, sigma)
+            scores.append(local_score * weight)
+        return sum(scores)
+
+    def score_images(self, images, max_workers=4):
+        with ThreadPoolExecutor(max_workers) as executor:
+            return list(executor.map(self.score, images))
+
+    def multi_score_images(self, images, max_workers=4):
+        with ThreadPoolExecutor(max_workers) as executor:
+            return list(executor.map(self.multi_score, images))
 
     def normalize_kernel(self, kernel):
         return kernel / np.sum(kernel)
