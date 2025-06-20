@@ -40,7 +40,7 @@ def test_validate_local_images():
     images = [Image.open(img_path) for img_path in img_paths]
     ndarray = [np.asarray(img) for img in images]
     obj = BRISQUE(url=False)
-    score = obj.score_images(ndarray, max_workers=8)
+    score = obj.score_images(ndarray, max_workers=4)
     print(score)
     assert type(score) == type([])
     assert type(round(score[0], 1)) == type(round(11.11, 1))
@@ -57,7 +57,7 @@ def test_validate_multi_score_images():
     images = [Image.open(img_path) for img_path in img_paths]
     ndarray = [np.asarray(img) for img in images]
     obj = BRISQUE(url=False)
-    score = obj.multi_score_images(ndarray, max_workers=8)
+    score = obj.multi_score_images(ndarray, max_workers=4)
     print(score)
     assert type(score) == type([])
     assert type(round(score[0], 1)) == type(round(11.11, 1))
