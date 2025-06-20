@@ -40,8 +40,6 @@ class BRISQUE:
         image = self.load_image(img)
         image = self.remove_alpha_channel(image)
         gray_image = skimage.color.rgb2gray(image)
-        mscn_coefficients = self.calculate_mscn_coefficients(gray_image, 7, 7 / 6)
-        coefficients = self.calculate_pair_product_coefficients(mscn_coefficients)
         brisque_features = self.calculate_brisque_features(gray_image, kernel_size=7, sigma=7 / 6)
         downscaled_image = cv2.resize(gray_image, None, fx=1 / 2, fy=1 / 2, interpolation=cv2.INTER_CUBIC)
         downscale_brisque_features = self.calculate_brisque_features(downscaled_image, kernel_size=7, sigma=7 / 6)
