@@ -1,29 +1,26 @@
+import json
+
 import cv2
 import collections
 from itertools import chain
 import urllib.request as request
-import pickle
 import numpy as np
 import scipy.signal as signal
-import scipy.ndimage.filters as filters
 import scipy.special as special
 import scipy.optimize as optimize
 import skimage.io
 from libsvm import svmutil
 import os
+
 from brisque.models import MODEL_PATH
+
 
 class BRISQUE:
     def __init__(self, url=False):
-
         self.url = url
-        self.model = os.path.join(MODEL_PATH, "svm.txt")
-        self.norm = os.path.join(MODEL_PATH, "normalize.pickle")
-
-        # Load in model
-        self.model = svmutil.svm_load_model(self.model)
-        with open(self.norm, 'rb') as f:
-            self.scale_params = pickle.load(f)
+        self.model = svmutil.svm_load_model(os.path.join(MODEL_PATH, "svm.txt"))
+        with open(os.path.join(MODEL_PATH, "normalize.json")) as f:
+            self.scale_params = json.loads(f.read())
 
     def load_image(self, img):
         if self.url:
@@ -32,7 +29,6 @@ class BRISQUE:
             return skimage.io.imread(image, plugin='pil')
         else:
             return img
-
 
     def remove_alpha_channel(self, original_image):
         image = np.array(original_image)
