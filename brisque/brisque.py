@@ -14,6 +14,8 @@ from libsvm import svmutil
 import os
 
 from brisque.models import MODEL_PATH
+from brisque.tests.brisque_numpy import numpy_gaussian_kernel2d, numpy_local_deviation
+from brisque.tests.brisque_pytorch import pytorch_gaussian_kernel2d, pytorch_convolve2d
 
 
 class BRISQUE:
@@ -72,28 +74,17 @@ class BRISQUE:
         with ThreadPoolExecutor(max_workers) as executor:
             return list(executor.map(self.multi_score, images))
 
-    def normalize_kernel(self, kernel):
-        return kernel / np.sum(kernel)
-
-    def gaussian_kernel2d(self, n, sigma):
-        Y, X = np.indices((n, n)) - int(n / 2)
-        gaussian_kernel = 1 / (2 * np.pi * sigma ** 2) * np.exp(-(X ** 2 + Y ** 2) / (2 * sigma ** 2))
-        return self.normalize_kernel(gaussian_kernel)
-
     def local_mean(self, image, kernel):
         return signal.convolve2d(image, kernel, 'same')
 
-    def local_deviation(self, image, local_mean, kernel):
-        "Vectorized approximation of local deviation"
-        sigma = image ** 2
-        sigma = signal.convolve2d(sigma, kernel, 'same')
-        return np.sqrt(np.abs(local_mean ** 2 - sigma))
-
     def calculate_mscn_coefficients(self, image, kernel_size=6, sigma=7 / 6):
         C = 1 / 255
-        kernel = self.gaussian_kernel2d(kernel_size, sigma=sigma)
+        # kernel = pytorch_gaussian_kernel2d(kernel_size, sigma=sigma)
+        # local_mean = pytorch_convolve2d(image, kernel, 'same')
+
+        kernel = numpy_gaussian_kernel2d(kernel_size, sigma=sigma)
         local_mean = signal.convolve2d(image, kernel, 'same')
-        local_var = self.local_deviation(image, local_mean, kernel)
+        local_var = numpy_local_deviation(image, local_mean, kernel)
 
         return (image - local_mean) / (local_var + C)
 
