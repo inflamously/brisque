@@ -122,3 +122,5 @@ brisque_dev
 .ipynb_checkpoints
 */.ipynb_checkpoints
 */.ipynb_checkpoints/*
+.venv
+.venv/*

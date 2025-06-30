@@ -1,3 +1,5 @@
+from brisque.brisque_implementation import BrisqueImplementation
+
 # Blind/Referenceless Image Spatial Quality Evaluator (BRISQUE) 
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11104461.svg)](https://doi.org/10.5281/zenodo.11104461)
@@ -20,7 +22,7 @@ pip install brisque
 ```python
 from brisque import BRISQUE
 
-obj = BRISQUE(url=False)
+obj = BRISQUE()
 obj.score("<Ndarray of the Image>")
 ```
 
@@ -28,7 +30,7 @@ obj.score("<Ndarray of the Image>")
 ```python
 from brisque import BRISQUE
 
-obj = BRISQUE(url=True)
+obj = BRISQUE()
 obj.score("<URL for the Image>")
 ```
 
@@ -37,6 +39,7 @@ obj.score("<URL for the Image>")
 #### Local Image
 
 - Input
+
 ```python
 from brisque import BRISQUE
 import numpy as np
@@ -46,8 +49,8 @@ img_path = "brisque/tests/sample-image.jpg"
 img = Image.open(img_path)
 ndarray = np.asarray(img)
 
-obj = BRISQUE(url=False)
-obj.score(img=ndarray)
+obj = BRISQUE()
+obj.score(image=ndarray)
 ```
 - Output
 ```
@@ -62,7 +65,7 @@ from brisque import BRISQUE
 
 URL = "https://www.mathworks.com/help/examples/images/win64/CalculateBRISQUEScoreUsingCustomFeatureModelExample_01.png"
 
-obj = BRISQUE(url=True)
+obj = BRISQUE()
 obj.score(URL)
 ```
 - Output
@@ -70,4 +73,18 @@ obj.score(URL)
 71.73427549219988
 ```
 
+# BRISQUE Numpy Hybrid Pytorch Implementation
 
+This fork features a new pytorch implementation of BRISQUE which has ~1.0X margin error difference compared to the numpy implementation. 
+<br>BRISQUE can now be used with either numpy or pytorch.
+<br>It can reduce calculations from 30 minutes to 2 minutes based on hardware and similiar.
+<br>This allows for enormous faster calculations when using BRISQUE.
+
+Use the following example to get started:
+```python
+from brisque import BRISQUE
+from brisque.brisque_implementation import BrisqueImplementation
+
+obj = BRISQUE(implementation=BrisqueImplementation.Pytorch)
+obj.score("https://www.mathworks.com/help/examples/images/win64/CalculateBRISQUEScoreUsingCustomFeatureModelExample_01.png")
+```
